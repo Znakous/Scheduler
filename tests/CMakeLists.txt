@@ -15,7 +15,8 @@ enable_testing()
 
 add_executable(
     scheduler-tests
-    simple_tests.cpp
+    tuple_tests.cpp
+    task_tests.cpp
 )
 
 target_link_libraries(

@@ -1,7 +1,12 @@
 #pragma once
 
+#include <task.h>
 
-struct ret {};
+struct ret {
+
+};
+
+
 // TODO: Implement scheduler
 class TTaskScheduler {
 public:
