@@ -15,6 +15,7 @@ enable_testing()
 
 add_executable(
     scheduler-tests
+    optional_tests.cpp
     tuple_tests.cpp
     task_tests.cpp
 )
