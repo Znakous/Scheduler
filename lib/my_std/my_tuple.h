@@ -7,10 +7,11 @@ struct Tuple;
 
 
 template <typename Primary, typename... Others>
-struct Tuple<Primary, Others...> {
-
+struct Tuple<Primary, Others...> 
+{
     Tuple(const Primary& this_val_a, const Others&... others_a)
-     : this_val(this_val_a), others(Tuple<Others...>(others_a...)) {}
+     : this_val(this_val_a), others(Tuple<Others...>(others_a...)) 
+    {}
 
     static constexpr size_t size = 1 + sizeof...(Others);
 
@@ -29,7 +30,8 @@ struct Tuple<Primary, Others...> {
 };
 
 template<>
-struct Tuple<> {
+struct Tuple<> 
+{
     Tuple() {}
 
     using Types = void;

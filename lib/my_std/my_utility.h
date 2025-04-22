@@ -1,10 +1,10 @@
 #pragma once
 
 #include <my_tuple.h>
+#include <my_future.h>
 
 struct false_type { static constexpr bool value = false; };
 struct true_type { static constexpr bool value = true; };
-
 
 
 template<bool selector, typename T, typename F>
@@ -16,6 +16,8 @@ struct conditional<false, T, F>{ using type = F; };
 template<typename T, typename F>
 struct conditional<true, T, F>{ using type = T; };
 
+template<bool selector, typename T, typename F>
+using conditional_t = conditional<selector, T, F>::type;
 
 namespace sequence {
     template<int... values>
@@ -43,12 +45,12 @@ auto Apply(Func&& func, Tuple&& tuple) {
 
 template<typename Class, typename Func, typename Tuple, int... indices>
 auto CallMethodImpl(Class&& entity, Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
-    return ((std::forward<Func>(func)))(entity, tuple.template Get<indices>()...);
+    return ((std::forward<Func>(func)))(std::forward<Class> (entity), tuple.template Get<indices>()...);
 }
 
 template<typename Class, typename Func, typename Tuple>
 auto CallMethod(Class&& entity, Func&& func, Tuple&& tuple) {
-    return CallMethodImpl(entity, func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
+    return CallMethodImpl(std::forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
 }
 
 template<typename T>
@@ -127,3 +129,17 @@ constexpr bool IsConst_v = false;
 template<typename T>
 constexpr bool IsConst_v<const T> = true;
 
+template<typename T>
+struct Pure
+{
+    using type = Clear_t<T>;
+};
+
+template<typename T>
+struct Pure<FutureResult<T>>
+{
+    using type = Clear_t<T>;
+};
+
+template<typename T>
+using Pure_t = Pure<Clear_t<T>>::type;

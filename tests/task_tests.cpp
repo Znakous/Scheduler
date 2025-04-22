@@ -3,10 +3,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+namespace test_details {}
+
 
 TEST(TaskTests, LambdaTest) {
     auto T1 = Task([](const int& i, const int& j) {return i + j;}, 67, 78);
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67+78);
 }
 
@@ -15,7 +17,7 @@ int _TestFuncSum(int a, int b) {
 }
 TEST(TaskTests, FunctionTest) {
     auto T1 = Task(_TestFuncSum, 67, 78);
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67+78);
 }
 
@@ -29,9 +31,8 @@ struct Muler{
 TEST(TaskTests, FunctorTest) {
     auto T1 = Task(Muler(), 67);
     ASSERT_EQ(T1.template GetArg<0>(), 67);
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67*2);
-    // ASSERT_EQ(T1.template GetArg<1>(), 78);
 }
 
 struct MulerLhs{
@@ -49,7 +50,7 @@ TEST(TaskTests, MethodTest) {
     ASSERT_EQ(is_class_member_v<decltype(_TestFuncSum)>, false);
 
     auto T1 = Task(&MulerLhs::Res, abobus, 67);
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67*3);
     ASSERT_TRUE(T1.Calculated());
     ASSERT_EQ(el, 67*3);
@@ -72,7 +73,7 @@ TEST(TaskTests, ConstMethodTest) {
     ASSERT_EQ(is_class_member_v<decltype(_TestFuncSum)>, false);
 
     auto T1 = Task(&SimulatorMuler::Res, abobus, 67);
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67*3);
     ASSERT_TRUE(T1.Calculated());
     ASSERT_EQ(el, 67*3);
@@ -88,8 +89,25 @@ TEST(TaskTests, GetArgTest) {
 TEST(TaskTests, CalcTimeTest) {
     auto T1 = Task([](const int& i, const int& j) {return i + j;}, 67, 78);
     ASSERT_FALSE(T1.Calculated());
-    auto el = T1.Execute();
+    auto el = T1.Execute().Get<int>().value();
     ASSERT_EQ(el, 67+78);
     ASSERT_TRUE(T1.Calculated());
     ASSERT_EQ(el, 67+78);
 }
+
+
+TEST(TaskTests, ResultTest) {
+    auto T1 = Task([](const int& i, const int& j) {return i + j;}, 67, 78);
+    // auto res = T1.GetFutureResult();
+    // auto el = T1.Execute().Get<int>().value();
+    // std::cout << el <<"\n";
+    // ASSERT_EQ(res.Get<int>(), 8);
+}
+
+// TEST(FutureResultTests, SimpleTest) {
+//     auto fut = FutureResult<int>();
+//     auto T1 = Task([](const int& i, const int& j) {return i + j+1;}, fut, 78);
+//     auto res = T1.GetFutureResult();
+//     auto el = T1.Execute().Get<int>().value();
+//     // ASSERT_EQ(res.Get<int>().value(), 8);
+// }

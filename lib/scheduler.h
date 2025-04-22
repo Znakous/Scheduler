@@ -1,25 +1,45 @@
 #pragma once
 
+#include <list>
+#include <memory>
+
 #include <task.h>
-
-struct ret {
-
-};
+#include <scheduler_iter.h>
 
 
-// TODO: Implement scheduler
-class TTaskScheduler {
+
+class TTaskScheduler 
+{
 public:
-    template<typename T, typename A, typename B>
-    ret add(T t, A a, B b){return ret();}
+    template<typename T, typename... Args>
+    SchedulerIterator add(T&& t, Args&&... args) {
+        tasks_.emplace_back(UniquePtrTask(std::forward<T> (t), std::forward<Args> (args)...));
+        return --(tasks_.end());
+    }
+
+    template<typename T>
+    auto getFutureResult(const SchedulerIterator& iter){
+        auto res_place = iter->GetResult();
+        return FutureResult<T> (res_place.Get<T*>().value());
+    }
+
+    template<typename T>
+    auto getResult(SchedulerIterator a) {
+        auto result = a->Execute().template Get<T>();
+        if (result) {
+            return result.value();
+        } else {
+            throw std::exception("task execution failed\n");
+        }
+    }
 
 
-    template<typename T, typename A>
-    ret getFutureResult(A a){return ret();}
+    void executeAll() {
+        for (auto& task : tasks_) {
+            task->Execute();
+        }
+    }
 
-    template<typename T, typename A>
-    int getResult(A a){return int();}
-
-
-    void executeAll(){}
+private:
+    std::list<std::unique_ptr<TaskBase>> tasks_;
 };
