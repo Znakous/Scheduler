@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <my_tuple.h>
+#include <my_concepts.h>
 #include <my_utility.h>
 #include <my_func.h>
 #include <my_optional.h>
@@ -39,8 +40,8 @@ class TaskImpl : public TaskBase
 public:
     template<typename F, typename... A>
     TaskImpl(F&& function, A&&... arguments)
-     : function_(std::forward<F> (function)), 
-       arguments_(std::forward<A> (arguments)...) 
+     : function_(Forward<F> (function)), 
+       arguments_(Forward<A> (arguments)...) 
     {}
 
     using function_type = Func;
@@ -92,7 +93,7 @@ template<typename Func, typename... Args>
 requires MyConcepts::Invocable<Func, Args...>
 auto Task(Func&& function, Args&&... arguments) {
     return TaskImpl<Func, Args...>(
-        std::forward<Func> (function), std::forward<Args> (arguments)...
+        Forward<Func> (function), Forward<Args> (arguments)...
     );
 }
 
@@ -100,7 +101,7 @@ template<typename Func, typename... Args>
 requires MyConcepts::Invocable<Func, Args...>
 auto UniquePtrTask(Func&& function, Args&&... arguments) {
     return std::make_unique<TaskImpl<Func, Args...>>(
-        std::forward<Func> (function), std::forward<Args> (arguments)...
+        Forward<Func> (function), Forward<Args> (arguments)...
     );
 }
 
@@ -110,8 +111,8 @@ requires is_class_member_v<Func> && MyConcepts::Invocable<Func, Args...>
 struct TaskImpl <Func, Executor, Args...> : public TaskBase 
 {
     TaskImpl(Func&& function, Executor&& entity, Args&&... arguments)
-     : function_(MyFunc::ClassMethodStore<Func, Args...>(std::forward<Func> (function))), 
-       arguments_(std::forward<Args> (arguments)...), 
+     : function_(MyFunc::ClassMethodStore<Func, Args...>(Forward<Func> (function))), 
+       arguments_(Forward<Args> (arguments)...), 
        entity_(const_cast<Clear_t<Executor>*>(&entity))
     {}
 
@@ -166,9 +167,9 @@ template<typename Func, typename Executor, typename... Args>
 requires is_class_member_v<Func> && MyConcepts::Invocable<Func, Args...>
 auto Task(Func&& function, Executor&& executor, Args&&... arguments) {
     return TaskImpl<Func, Executor, Args...> (
-            std::forward<Func> (function), 
-            std::forward<Executor>(executor), 
-            std::forward<Args> (arguments)...
+            Forward<Func> (function), 
+            Forward<Executor>(executor), 
+            Forward<Args> (arguments)...
     );
 }
 
@@ -176,8 +177,8 @@ template<typename Func, typename Executor, typename... Args>
 requires is_class_member_v<Func> && MyConcepts::Invocable<Func, Args...>
 auto UniquePtrTask(Func&& function, Executor&& executor, Args&&... arguments) {
     return std::make_unique<TaskImpl<Func, Executor, Args...>>(
-            std::forward<Func> (function), 
-            std::forward<Executor>(executor), 
-            std::forward<Args> (arguments)...
+            Forward<Func> (function), 
+            Forward<Executor>(executor), 
+            Forward<Args> (arguments)...
     );
 }

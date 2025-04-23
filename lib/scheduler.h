@@ -2,6 +2,7 @@
 
 #include <list>
 #include <memory>
+#include <stdexcept>
 
 #include <task.h>
 #include <scheduler_iter.h>
@@ -12,9 +13,9 @@ class TTaskScheduler
 public:
     template<typename T, typename... Args>
     SchedulerIterator  add(T&& t, Args&&... args) {
-        tasks_.emplace_back(UniquePtrTask(std::forward<T> (t), std::forward<Args> (args)...));
+        tasks_.emplace_back(UniquePtrTask(Forward<T> (t), Forward<Args> (args)...));
         auto iter = SchedulerIterator(--(tasks_.end()));
-        (TryAddDependency(iter, std::forward<Args>(args)), ...);
+        (TryAddDependency(iter, Forward<Args>(args)), ...);
         return iter;
     }
 
@@ -30,7 +31,7 @@ public:
         if (result) {
             return result.value();
         } else {
-            throw std::exception("task execution failed\n");
+            throw std::runtime_error("task execution failed\n");
         }
     }
 

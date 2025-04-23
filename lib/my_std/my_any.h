@@ -38,7 +38,7 @@ public:
 
     template<typename T>
     Any(T&& val)
-     : any_impl_(std::make_unique<AnyTempImpl<T>>(std::forward<T>(val))) 
+     : any_impl_(std::make_unique<AnyTempImpl<T>>(Forward<T>(val))) 
     {}
 
     template<typename T>

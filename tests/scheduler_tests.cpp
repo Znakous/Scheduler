@@ -161,3 +161,13 @@ TEST(SchedulerTests, PushTest) {
     ASSERT_EQ(scheduler.getResult<size_t>(T3), 3);
     ASSERT_THAT(vector.v, ::testing::ElementsAre("i", "love", "c++"));
 }
+
+TEST(SchedulerTests, ExceptionTest) {
+    TTaskScheduler scheduler;
+    auto T1 = scheduler.add([]() { 
+        throw std::runtime_error("Test error");
+        return "aboba"; 
+    });
+    
+    EXPECT_THROW(scheduler.getResult<int>(T1), std::runtime_error);
+}

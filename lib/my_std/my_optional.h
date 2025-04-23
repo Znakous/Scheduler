@@ -1,8 +1,8 @@
 #pragma once
 
 #include <exception>
-#include <string>
-#include <iostream>
+
+#include <my_utility.h>
 
 struct BadOptionalAccess : public std::exception {    
     const char* what() const noexcept override{
@@ -18,7 +18,7 @@ public:
     Optional() {}
 
     Optional(const T& value) : value_(value), has_value_(true) {}
-    Optional(T&& value) : value_(std::forward<T>(value)), has_value_(true) {}
+    Optional(T&& value) : value_(Forward<T>(value)), has_value_(true) {}
 
     Optional(const Optional& other) {
         if (other.has_value_) {
@@ -70,7 +70,7 @@ private:
         T real;
         Storage() {litter = 'a';}
         Storage(const T& val) : real(val) {}
-        Storage(T&& val) : real(std::forward<T> (val)) {}
+        Storage(T&& val) : real(Forward<T> (val)) {}
         auto operator=(const T&val) {
             new (&real) T(val);
         }

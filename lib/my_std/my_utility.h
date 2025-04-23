@@ -1,7 +1,16 @@
 #pragma once
 
 #include <my_tuple.h>
-#include <my_future.h>
+
+template<typename T>
+T&& Forward(T&& val) {
+    return static_cast<T&&> (val);
+}
+
+template<typename T>
+T&& Forward(T& val) {
+    return static_cast<T&&> (val);
+}
 
 struct false_type { static constexpr bool value = false; };
 struct true_type { static constexpr bool value = true; };
@@ -35,16 +44,16 @@ namespace sequence {
 
 template<typename Func, typename Tuple, int... indices>
 auto ApplyImpl(Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
-    return (std::forward<Func>(func))(tuple.template Get<indices>()...);
+    return (Forward<Func>(func))(tuple.template Get<indices>()...);
 }
 template<typename Func, typename Tuple, int... indices>
 void VoidApplyImpl(Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
-    (std::forward<Func>(func))(tuple.template Get<indices>()...);
+    (Forward<Func>(func))(tuple.template Get<indices>()...);
 }
 
 template<typename Func, typename Tuple>
 auto Apply(Func&& func, Tuple&& tuple) {
-    auto temp = ApplyImpl(std::forward<Func> (func), std::forward<Tuple> (tuple), (typename sequence::MakeSequence<tuple.size>::type){});
+    auto temp = ApplyImpl(Forward<Func> (func), Forward<Tuple> (tuple), (typename sequence::MakeSequence<tuple.size>::type){});
     return temp;
 }
 
@@ -55,22 +64,22 @@ void VoidApply(Func&& func, Tuple&& tuple) {
 
 template<typename Class, typename Func, typename Tuple, int... indices>
 auto CallMethodImpl(Class&& entity, Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
-    return ((std::forward<Func>(func)))(std::forward<Class> (entity), tuple.template Get<indices>()...);
+    return ((Forward<Func>(func)))(Forward<Class> (entity), tuple.template Get<indices>()...);
 }
 
 template<typename Class, typename Func, typename Tuple, int... indices>
 void VoidCallMethodImpl(Class&& entity, Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
-    ((std::forward<Func>(func)))(std::forward<Class> (entity), tuple.template Get<indices>()...);
+    ((Forward<Func>(func)))(Forward<Class> (entity), tuple.template Get<indices>()...);
 }
 
 template<typename Class, typename Func, typename Tuple>
 auto CallMethod(Class&& entity, Func&& func, Tuple&& tuple) {
-    return CallMethodImpl(std::forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
+    return CallMethodImpl(Forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
 }
 
 template<typename Class, typename Func, typename Tuple>
 void VoidCallMethod(Class&& entity, Func&& func, Tuple&& tuple) {
-    VoidCallMethodImpl(std::forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
+    VoidCallMethodImpl(Forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
 }
 
 template<typename T>
@@ -149,23 +158,9 @@ constexpr bool IsConst_v = false;
 template<typename T>
 constexpr bool IsConst_v<const T> = true;
 
-template<typename T>
-struct Pure
-{
-    using type = T;
-};
-
-template<typename T, typename U>
-struct Pure<FutureResult<T, U>>
-{
-    using type = Clear_t<T>;
-};
-
-template<typename T>
-using Pure_t = Pure<T>::type;
-
 template <typename T, typename U>
 constexpr bool IsSame_v = false;
 
 template <typename T>
 constexpr bool IsSame_v<T, T> = true;
+

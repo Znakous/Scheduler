@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <my_concepts.h>
 #include <my_future.h>
 #include <my_utility.h>
@@ -19,7 +17,7 @@ public:
 
     template<typename... A>
     auto operator()(A&&... args) {
-        return (*func_)(GetArgument(std::forward<A> (args))...);
+        return (*func_)(GetArgument(Forward<A> (args))...);
     } 
 
 private:
