@@ -14,6 +14,7 @@ template<typename T>
 class Optional 
 {
 public:
+    using v_t = T;
     Optional() {}
 
     Optional(const T& value) : value_(value), has_value_(true) {}
@@ -33,6 +34,14 @@ public:
         }
         return *this;
     }
+    Optional& operator=(const T& other) { 
+        if (has_value_) {
+            value_.real.~T();
+        }
+        has_value_ = true;
+        value_ = other;
+        return *this;
+    }
 
     ~Optional() {
         if (has_value_) {
@@ -44,7 +53,7 @@ public:
 
     bool has_value() const {return has_value_; }
 
-    auto& value() {
+    auto value() {
         if (!has_value_) {
             throw BadOptionalAccess();
         }
@@ -62,6 +71,9 @@ private:
         Storage() {litter = 'a';}
         Storage(const T& val) : real(val) {}
         Storage(T&& val) : real(std::forward<T> (val)) {}
+        auto operator=(const T&val) {
+            new (&real) T(val);
+        }
         ~Storage() {}
     } value_;
 

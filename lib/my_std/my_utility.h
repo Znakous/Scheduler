@@ -37,10 +37,20 @@ template<typename Func, typename Tuple, int... indices>
 auto ApplyImpl(Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
     return (std::forward<Func>(func))(tuple.template Get<indices>()...);
 }
+template<typename Func, typename Tuple, int... indices>
+void VoidApplyImpl(Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
+    (std::forward<Func>(func))(tuple.template Get<indices>()...);
+}
 
 template<typename Func, typename Tuple>
 auto Apply(Func&& func, Tuple&& tuple) {
-    return ApplyImpl(func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
+    auto temp = ApplyImpl(std::forward<Func> (func), std::forward<Tuple> (tuple), (typename sequence::MakeSequence<tuple.size>::type){});
+    return temp;
+}
+
+template<typename Func, typename Tuple>
+void VoidApply(Func&& func, Tuple&& tuple) {
+    ApplyImpl(func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
 }
 
 template<typename Class, typename Func, typename Tuple, int... indices>
@@ -48,9 +58,19 @@ auto CallMethodImpl(Class&& entity, Func&& func, Tuple&& tuple, sequence::Sequen
     return ((std::forward<Func>(func)))(std::forward<Class> (entity), tuple.template Get<indices>()...);
 }
 
+template<typename Class, typename Func, typename Tuple, int... indices>
+void VoidCallMethodImpl(Class&& entity, Func&& func, Tuple&& tuple, sequence::Sequence<indices...>&&) {
+    ((std::forward<Func>(func)))(std::forward<Class> (entity), tuple.template Get<indices>()...);
+}
+
 template<typename Class, typename Func, typename Tuple>
 auto CallMethod(Class&& entity, Func&& func, Tuple&& tuple) {
     return CallMethodImpl(std::forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
+}
+
+template<typename Class, typename Func, typename Tuple>
+void VoidCallMethod(Class&& entity, Func&& func, Tuple&& tuple) {
+    VoidCallMethodImpl(std::forward<Class> (entity), func, tuple, (typename sequence::MakeSequence<tuple.size>::type){});
 }
 
 template<typename T>
@@ -132,14 +152,20 @@ constexpr bool IsConst_v<const T> = true;
 template<typename T>
 struct Pure
 {
-    using type = Clear_t<T>;
+    using type = T;
 };
 
-template<typename T>
-struct Pure<FutureResult<T>>
+template<typename T, typename U>
+struct Pure<FutureResult<T, U>>
 {
     using type = Clear_t<T>;
 };
 
 template<typename T>
-using Pure_t = Pure<Clear_t<T>>::type;
+using Pure_t = Pure<T>::type;
+
+template <typename T, typename U>
+constexpr bool IsSame_v = false;
+
+template <typename T>
+constexpr bool IsSame_v<T, T> = true;

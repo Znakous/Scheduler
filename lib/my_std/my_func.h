@@ -17,8 +17,9 @@ public:
      : func_(&func) 
     {}
 
-    auto operator()(const Args&... args) {
-        return (*func_)(GetArgument(args)...);
+    template<typename... A>
+    auto operator()(A&&... args) {
+        return (*func_)(GetArgument(std::forward<A> (args))...);
     } 
 
 private:
@@ -33,14 +34,14 @@ class ClassMethodStore
 public:
     ClassMethodStore(const Func& func) : func_(&func) {}
 
-    template<typename Executor>
-    auto operator()(Executor* entity, Clear_t<Args>&&... args) {
+    template<typename Executor, typename... A>
+    auto operator()(Executor* entity, A&&... args) {
         return (entity->*(*func_))(GetArgument(args)...);
     } 
 
-    template<typename Executor>
-    auto operator()(const Executor* entity, Clear_t<Args>&... args) {
-        return (entity->*(*func_))(GetArgument(args)...);
+    template<typename Executor, typename... A>
+    auto operator()(const Executor* entity, A&... args) {
+        return (const_cast<Executor*>(entity)->*(*func_))(GetArgument(args)...);
     } 
 
 private:

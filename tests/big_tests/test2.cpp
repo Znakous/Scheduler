@@ -16,7 +16,6 @@ struct Adder {
     
     int identity;
     int AddIdentity(int a) const { 
-        std::cout << identity << "\n";
         return a + identity;
     }
 };
@@ -37,7 +36,7 @@ int WorkWithIdentity() {
 
     auto T4 = scheduler.add(&Adder::AddIdentity, adder_entity, res_sum2);
 
-    scheduler.executeAll();
+    scheduler.ExecuteDependent(T4);
     auto el = scheduler.getResult<int>(T4);
 
     return el;
@@ -47,7 +46,11 @@ TEST(SchedulerTests, ClassTest) {
     constexpr int x = 1;
     constexpr int y = 19;
     ASSERT_EQ((WorkWithIdentity<false, x>()), 1234512345 + x);
-    ASSERT_EQ((WorkWithIdentity<true, x>()), 1234512345 + x);
     ASSERT_EQ((WorkWithIdentity<false, y>()), 1234512345 + y);
+}
+TEST(SchedulerTests, ConstClassTest) {
+    constexpr int x = 1;
+    constexpr int y = 19;
+    ASSERT_EQ((WorkWithIdentity<true, x>()), 1234512345 + x);
     ASSERT_EQ((WorkWithIdentity<true, y>()), 1234512345 + y);
 }

@@ -15,12 +15,16 @@ enable_testing()
 
 add_executable(
     scheduler-tests
-    scheduler_tests.cpp
+    any_tests.cpp
     optional_tests.cpp
     tuple_tests.cpp
     task_tests.cpp
+    scheduler_tests.cpp
     big_tests/test1.cpp
     big_tests/test2.cpp
+    big_tests/dependency_tests.cpp
+    big_tests/test_from_main.cpp
+    big_tests/cycle_tests.cpp
 )
 
 target_link_libraries(

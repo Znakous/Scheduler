@@ -45,6 +45,7 @@ public:
 
     using function_type = Func;
     using return_type = decltype(declval<Func>()((declval<Pure_t<Args>>())...));
+    using void_killer = conditional_t<IsSame_v<void, return_type>, char, return_type>;
 
     template<size_t ind>
     auto GetArg() {
@@ -52,8 +53,13 @@ public:
     }
     
     void Process() {
-        if (!result_) {
-            result_ = Apply(function_, arguments_);
+        if (!result_) { 
+            if constexpr (IsSame_v<void, return_type>) {
+                VoidApply(function_, arguments_);
+                result_ = 'a';
+            } else {
+                result_ = Apply(function_, arguments_);
+            }
         }
     }
     
@@ -62,6 +68,9 @@ public:
             return result_.value();
         }
         Process();
+        if constexpr(IsSame_v<void, return_type>) {
+            return Any();
+        }
         return result_.value();
     }
 
@@ -76,13 +85,13 @@ public:
 private:
     MyFunc::FuncStore<Func, Args...> function_;
     Tuple<Args...> arguments_;
-    Optional<return_type> result_;
+    Optional<void_killer> result_;
 };
 
 template<typename Func, typename... Args>
 requires MyConcepts::Invocable<Func, Args...>
 auto Task(Func&& function, Args&&... arguments) {
-    return TaskImpl<Func, Clear_t<Args>...>(
+    return TaskImpl<Func, Args...>(
         std::forward<Func> (function), std::forward<Args> (arguments)...
     );
 }
@@ -90,7 +99,7 @@ auto Task(Func&& function, Args&&... arguments) {
 template<typename Func, typename... Args>
 requires MyConcepts::Invocable<Func, Args...>
 auto UniquePtrTask(Func&& function, Args&&... arguments) {
-    return std::make_unique<TaskImpl<Clear_t<Func>, Clear_t<Args>...>>(
+    return std::make_unique<TaskImpl<Func, Args...>>(
         std::forward<Func> (function), std::forward<Args> (arguments)...
     );
 }
@@ -108,22 +117,37 @@ struct TaskImpl <Func, Executor, Args...> : public TaskBase
 
     using function_type = Func;
     using return_type = decltype((declval<Executor>().*declval<Func>())(declval<Args>()...));
+    using void_killer = conditional_t<IsSame_v<void, return_type>, char, return_type>;
 
     template<size_t ind>
     auto GetArg() {
         return arguments_.template Get<ind>();
     }
     
+    void Process() {
+        if (!result_) { 
+            if constexpr (IsSame_v<void, return_type>) {
+                VoidCallMethod(entity_, function_, arguments_);
+                result_ = 'a';
+            } else {
+                result_ = CallMethod(entity_, function_, arguments_);
+            }
+        }
+    }
+    
     Any Execute() override {
         if (result_) {
             return result_.value();
         }
-        result_ = CallMethod(entity_, function_, arguments_);
+        Process();
+        if constexpr(IsSame_v<void, return_type>) {
+            return Any();
+        }
         return result_.value();
     }
 
     Any GetResult() override {
-        return result_.value_addr();
+        return (result_.value_addr());
     }
 
     bool Calculated() const {
@@ -134,7 +158,7 @@ private:
     Clear_t<Executor>* entity_;
     MyFunc::ClassMethodStore<Func, Args...> function_;
     Tuple<Args...> arguments_;
-    Optional<return_type> result_;
+    Optional<void_killer> result_;
 };
 
 

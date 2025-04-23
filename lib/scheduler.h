@@ -7,20 +7,21 @@
 #include <scheduler_iter.h>
 
 
-
 class TTaskScheduler 
 {
 public:
     template<typename T, typename... Args>
-    SchedulerIterator add(T&& t, Args&&... args) {
+    SchedulerIterator  add(T&& t, Args&&... args) {
         tasks_.emplace_back(UniquePtrTask(std::forward<T> (t), std::forward<Args> (args)...));
-        return --(tasks_.end());
+        auto iter = SchedulerIterator(--(tasks_.end()));
+        (TryAddDependency(iter, std::forward<Args>(args)), ...);
+        return iter;
     }
 
     template<typename T>
     auto getFutureResult(const SchedulerIterator& iter){
         auto res_place = iter->GetResult();
-        return FutureResult<T> (res_place.Get<T*>().value());
+        return FutureResult<T, SchedulerIterator> (res_place.Get<T*>().value(), iter);
     }
 
     template<typename T>
@@ -33,6 +34,9 @@ public:
         }
     }
 
+    void ExecuteDependent(SchedulerIterator iter) {
+        iter.ExecuteDependent();
+    }
 
     void executeAll() {
         for (auto& task : tasks_) {

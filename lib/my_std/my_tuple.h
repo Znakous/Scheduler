@@ -36,6 +36,9 @@ struct Tuple<>
 
     using Types = void;
 
+    static constexpr size_t size = 0;
+
+
     template<size_t ind>
     int Get() {
         throw std::out_of_range("index outside of tuple bounds");

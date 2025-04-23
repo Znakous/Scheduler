@@ -13,7 +13,7 @@ concept InvocableImpl = ((!is_class_member_v<T>) && requires(T&& ac, Args&&... a
 }) || (is_class_member_v<T>);
 
 template<typename T, typename... Args>
-concept Invocable = InvocableImpl<T, Pure_t<Clear_t<Args>>...>;
+concept Invocable = InvocableImpl<T, Pure_t<Args>...>;
 
 } // namespace MyConcepts
 

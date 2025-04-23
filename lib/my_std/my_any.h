@@ -32,17 +32,20 @@ private:
 class Any
 {
 public:
+    Any()
+     : any_impl_(nullptr) 
+    {}
+
     template<typename T>
     Any(T&& val)
-     : any_impl_(std::make_unique<AnyTempImpl<Clear_t<T>>>(std::forward<T>(val))) 
+     : any_impl_(std::make_unique<AnyTempImpl<T>>(std::forward<T>(val))) 
     {}
 
     template<typename T>
     Optional<T> Get() {
         if (dynamic_cast<AnyTempImpl<T>*> (any_impl_.get())) {
             return *(static_cast<T*> (const_cast<void*>(any_impl_.get()->Get())));
-        }
-        return Optional<T>();
+        }        return Optional<T>();
     }
 
     template<typename T>
