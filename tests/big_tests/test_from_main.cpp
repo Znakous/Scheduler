@@ -1,6 +1,8 @@
-#include <iostream>
+#include <scheduler.h>
 
-#include "scheduler.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 
 struct AddNumber {
     float add(float a) const {
@@ -10,12 +12,12 @@ struct AddNumber {
     float number;
 };
 
-int main(int argc, char** argv) {
+TEST(SchedulerTests, TestFromMain) {
     float a = 1;
-    float b = -2;
-    float c = 0;
+    float b = -6;
+    float c = 8;
     AddNumber add{
-        .number = 3
+        .number = 3.5
     };
 
     TTaskScheduler scheduler;
@@ -36,9 +38,7 @@ int main(int argc, char** argv) {
 
     scheduler.executeAll();
 
-    std::cout << "x1 = " << scheduler.getResult<float>(id5) << std::endl;
-    std::cout << "x2 = " << scheduler.getResult<float>(id6) << std::endl;
-    std::cout << "x3 = " << scheduler.getResult<float>(id7) << std::endl;
-
-    return 0;
+    ASSERT_EQ(scheduler.getResult<float>(id5), 4);
+    ASSERT_EQ(scheduler.getResult<float>(id6), 2);
+    ASSERT_EQ(scheduler.getResult<float>(id7), 5.5);
 }

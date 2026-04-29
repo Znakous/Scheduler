@@ -8,8 +8,9 @@ project(
 set(CMAKE_CXX_STANDARD 23)
 
 include_directories(lib)
+include_directories(lib/my_std)
 
 add_subdirectory(bin)
 
-# enable_testing()
-# add_subdirectory(tests)
+enable_testing()
+add_subdirectory(tests)
